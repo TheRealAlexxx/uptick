@@ -32,8 +32,10 @@ h1 {{ font-size: 1.3rem; }}
 .ok {{ background: #12351f; color: #3fb950; }}
 .down {{ background: #4a1720; color: #f85149; }}
 .tablewrap {{ overflow-x: auto; }}
-table {{ border-collapse: collapse; width: 100%; }}
-td, th {{ text-align: left; padding: .35rem .5rem; border-bottom: 1px solid #21262d; }}
+table {{ border-collapse: collapse; width: 100%; min-width: 600px; }}
+td, th {{ text-align: left; padding: .35rem .5rem; border-bottom: 1px solid #21262d;
+  white-space: nowrap; }}
+th:first-child, td:first-child {{ white-space: normal; }}
 .state-up {{ color: #3fb950; font-weight: bold; }}
 .state-down {{ color: #f85149; font-weight: bold; }}
 .state-unknown {{ color: #8b949e; }}
