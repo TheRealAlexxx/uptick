@@ -54,14 +54,12 @@ def check(monitor):
             body = response.read(_MAX_BODY_READ) if keyword else None
         latency_ms = (time.monotonic() - start) * 1000.0
     except urllib.error.HTTPError as exc:
-        # The server answered, just not with a success status.
+        # The server answered with a 4xx/5xx status. That is still an answer:
+        # compare it against expected_status like any other response, because
+        # a monitor may legitimately expect a 404 or a 401.
         latency_ms = (time.monotonic() - start) * 1000.0
-        return CheckResult(
-            ok=False,
-            status_code=exc.code,
-            latency_ms=latency_ms,
-            error="expected status %d, got %d" % (expected, exc.code),
-        )
+        status = exc.code
+        body = exc.read(_MAX_BODY_READ) if keyword else None
     except (urllib.error.URLError, OSError, ValueError) as exc:
         latency_ms = (time.monotonic() - start) * 1000.0
         reason = getattr(exc, "reason", exc)

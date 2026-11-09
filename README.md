@@ -90,13 +90,16 @@ The config file is the source of truth for what *should* be monitored; `uptick a
 - **sqlite, WAL mode, one file.** Results are append-only rows with an index on `(monitor_id, ts)`. Uptime percentages are `SUM(ok)/COUNT(*)` over a time window, computed at render time - no aggregation tables to drift out of sync. Raw results can be pruned (`storage.prune_results`); incidents are kept forever, because they are the history people actually read.
 - **One scheduler thread, a small pool for checks.** A single loop decides what is due; a `ThreadPoolExecutor` runs the HTTP checks so one hanging endpoint (bounded by its own timeout) cannot stall the others.
 - **The status page is read-only and self-contained.** Inline CSS, no JavaScript, no external assets, a 60-second meta refresh. It never writes to the database and never loads anything from the internet, so it is safe to expose. JSON consumers get the same data at `/api/status`.
-- **Notification failures never break monitoring.** A webhook that is down logs and moves on; the monitor's job is watching other things, not falling over with them.
+- **Notification failures never break monitoring.** A webhook that is down writes one line to stderr and moves on; the monitor's job is watching other things, not falling over with them.
 
 ## Honest limits
 
 - HTTP(S) only. No TCP/ping/DNS checks yet.
 - The scheduler reads the monitor set when `serve` starts; config edits need a restart to take effect (the `run` cron mode always reads fresh).
-- No authentication on the status page. Bind to localhost (the default) or put it behind something that auths.
+- No authentication on the status page. Binding beyond localhost exposes your monitor names, URLs and incident history to anyone who can reach the port; keep the default localhost bind or put it behind something that auths.
+- The request timeout bounds each socket operation, not the whole exchange; a slow redirect chain can take longer than `timeout_seconds` in wall-clock time.
+- Keyword checks read at most the first 512KB of a response body.
+- The status table scrolls horizontally on narrow screens rather than reflowing.
 - No distributed anything. One process, one database file.
 
 ## Development

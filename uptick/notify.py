@@ -2,11 +2,13 @@
 
 One generic JSON POST that works with Slack incoming webhooks, Discord
 webhooks (which accept the same {"text": ...} shape), and anything else
-that takes a JSON body. Failures to notify are logged and swallowed: a
-monitor that goes down because the notifier is down would be a bad joke.
+that takes a JSON body. Failures to notify are logged to stderr and
+swallowed: a monitor that goes down because the notifier is down would be
+a bad joke.
 """
 
 import json
+import sys
 import urllib.request
 
 
@@ -31,13 +33,17 @@ def _format_text(monitor, event, incident, result):
     return None
 
 
+def _log_error(exc):
+    sys.stderr.write("uptick: webhook notification failed: %s\n" % exc)
+
+
 class WebhookNotifier:
     """Callable with the scheduler's on_event signature."""
 
     def __init__(self, url, timeout=10, on_error=None):
         self.url = url
         self.timeout = timeout
-        self.on_error = on_error or (lambda exc: None)
+        self.on_error = on_error or _log_error
 
     def __call__(self, monitor, event, incident, result):
         if event not in ("opened", "closed"):

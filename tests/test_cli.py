@@ -63,6 +63,28 @@ class CliTests(unittest.TestCase):
         self.assertIn("https://shop.example.com", out)
         self.assertIn("never checked", out)
 
+    def test_add_rejects_invalid_values(self):
+        # regression: cmd_add used to skip config validation entirely
+        code, _, err = run_cli(
+            "--config", self.config_path, "add", "bad", "https://x.example.com",
+            "--interval", "-5",
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("interval_seconds", err)
+        code, _, err = run_cli(
+            "--config", self.config_path, "add", "bad", "https://x.example.com",
+            "--expected-status", "999",
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("expected_status", err)
+        code, _, err = run_cli(
+            "--config", self.config_path, "add", "bad", "ftp://x.example.com",
+        )
+        self.assertEqual(code, 2)
+        # and the bad monitor never landed in storage
+        code, out, _ = run_cli("--config", self.config_path, "list")
+        self.assertNotIn("bad", out)
+
     def test_remove(self):
         run_cli("--config", self.config_path, "add", "shop", "https://shop.example.com")
         code, out, _ = run_cli("--config", self.config_path, "remove", "shop")

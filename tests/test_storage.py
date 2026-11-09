@@ -87,6 +87,17 @@ class StorageTests(unittest.TestCase):
         self.assertIsNotNone(incident)
         self.assertIsNone(self.storage.open_incident(self.monitor["id"]))
 
+    def test_closed_incident_carries_ended_at(self):
+        # regression: the returned incident predated the UPDATE, so the
+        # recovery webhook always computed a 0m00s duration
+        self.storage.apply_result(self.monitor, self.fail(), ts=1000)
+        self.storage.apply_result(self.monitor, self.fail(), ts=1001)
+        event, incident = self.storage.apply_result(self.monitor, self.ok(), ts=1130)
+        self.assertEqual(event, "closed")
+        self.assertEqual(incident["ended_at"], 1130)
+        self.assertEqual(incident["started_at"], 1001)
+        self.assertEqual(incident["ended_at"] - incident["started_at"], 129)
+
     def test_success_streak_resets_failure_count(self):
         self.storage.apply_result(self.monitor, self.fail())
         self.storage.apply_result(self.monitor, self.ok())

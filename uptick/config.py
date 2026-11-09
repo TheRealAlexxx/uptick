@@ -27,6 +27,13 @@ _DEFAULTS = {
 _SERVER_DEFAULTS = {"host": "127.0.0.1", "port": 8080}
 
 
+def validate_monitor(raw):
+    """Validate one monitor dict and return it with defaults applied.
+    Shared by config loading and the 'uptick add' CLI so both reject the
+    same bad values."""
+    return _check_monitor(raw, 0)
+
+
 def _check_monitor(raw, index):
     if not isinstance(raw, dict):
         raise ConfigError("monitor %d: must be an object" % index)

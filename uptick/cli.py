@@ -11,7 +11,7 @@ import json
 import sys
 
 from . import __version__
-from .config import ConfigError, load_config, write_example_config
+from .config import ConfigError, load_config, validate_monitor, write_example_config
 from .notify import WebhookNotifier
 from .scheduler import Scheduler
 from .server import StatusServer, _fmt_time
@@ -34,7 +34,9 @@ def cmd_init(args):
 
 def cmd_add(args):
     config = load_config(args.config)
-    monitor = {
+    # same validation as config loading: argparse's type=int happily accepts
+    # --interval -5 or --expected-status 999
+    monitor = validate_monitor({
         "name": args.name,
         "url": args.url,
         "interval_seconds": args.interval,
@@ -42,7 +44,7 @@ def cmd_add(args):
         "expected_status": args.expected_status,
         "keyword": args.keyword,
         "failure_threshold": args.failure_threshold,
-    }
+    })
     with _open_storage(config) as storage:
         storage.upsert_monitor(monitor)
     _print("monitor %r saved (every %ds, expect %d)" % (args.name, args.interval, args.expected_status))

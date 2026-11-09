@@ -272,5 +272,8 @@ class Storage:
                     "UPDATE incidents SET ended_at = ? WHERE id = ?", (ts, open_inc["id"])
                 )
                 self.db.commit()
+            # the row fetched above predates the UPDATE; stamp the close time
+            # on the returned incident so callers can compute the duration
+            open_inc = dict(open_inc, ended_at=ts)
             return "closed", open_inc
         return None, None

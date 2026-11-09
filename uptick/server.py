@@ -31,6 +31,7 @@ h1 {{ font-size: 1.3rem; }}
   margin-bottom: 1.2rem; }}
 .ok {{ background: #12351f; color: #3fb950; }}
 .down {{ background: #4a1720; color: #f85149; }}
+.tablewrap {{ overflow-x: auto; }}
 table {{ border-collapse: collapse; width: 100%; }}
 td, th {{ text-align: left; padding: .35rem .5rem; border-bottom: 1px solid #21262d; }}
 .state-up {{ color: #3fb950; font-weight: bold; }}
@@ -43,10 +44,12 @@ h2 {{ font-size: 1rem; margin-top: 1.6rem; }}
 <body>
 <h1>{title}</h1>
 {banner}
+<div class="tablewrap">
 <table>
 <tr><th>monitor</th><th>state</th><th>24h</th><th>30d</th><th>last check</th><th>latency</th></tr>
 {rows}
 </table>
+</div>
 {incidents}
 <p class="muted">checked by uptick; page refreshes every 60s; generated {generated}</p>
 </body>

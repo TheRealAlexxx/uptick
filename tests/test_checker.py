@@ -57,6 +57,26 @@ class CheckerTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertLess(result.latency_ms, 5000)
 
+    def test_expected_error_status_passes(self):
+        # regression: the HTTPError branch used to fail unconditionally,
+        # even when the error status was exactly the expected one
+        with LocalServer({"/": (404, "nothing here")}) as server:
+            result = check(make_monitor(server.url("/"), expected_status=404))
+        self.assertTrue(result.ok)
+        self.assertEqual(result.status_code, 404)
+
+    def test_keyword_checked_in_error_body(self):
+        with LocalServer({"/": (404, "custom missing page")}) as server:
+            ok = check(
+                make_monitor(server.url("/"), expected_status=404, keyword="missing")
+            )
+            bad = check(
+                make_monitor(server.url("/"), expected_status=404, keyword="sesame")
+            )
+        self.assertTrue(ok.ok)
+        self.assertFalse(bad.ok)
+        self.assertIn("keyword", bad.error)
+
     def test_result_equality_ignores_latency(self):
         with LocalServer({"/": (200, "x")}) as server:
             a = check(make_monitor(server.url("/")))

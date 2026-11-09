@@ -1,4 +1,6 @@
+import io
 import unittest
+from contextlib import redirect_stderr
 
 from helpers import LocalServer, make_monitor, read_json_body
 
@@ -38,6 +40,13 @@ class NotifyTests(unittest.TestCase):
         notifier = WebhookNotifier("http://127.0.0.1:1/hook", timeout=1, on_error=errors.append)
         notifier(make_monitor("http://x.test/"), "opened", None, CheckResult(ok=False, error="x"))
         self.assertEqual(len(errors), 1)
+
+    def test_default_on_error_logs_to_stderr_and_never_raises(self):
+        notifier = WebhookNotifier("http://127.0.0.1:1/hook", timeout=1)
+        err = io.StringIO()
+        with redirect_stderr(err):
+            notifier(make_monitor("http://x.test/"), "opened", None, CheckResult(ok=False, error="x"))
+        self.assertIn("webhook notification failed", err.getvalue())
 
 
 if __name__ == "__main__":
