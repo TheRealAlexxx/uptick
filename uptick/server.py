@@ -141,16 +141,18 @@ def render_html(status, title="uptick status"):
         items = []
         for inc in status["incidents"]:
             if inc["ended_at"] is None:
-                length = "ongoing (%s)" % _fmt_duration(time.time() - inc["started_at"])
+                course = "ongoing for %s" % _fmt_duration(time.time() - inc["started_at"])
             else:
-                length = _fmt_duration(inc["ended_at"] - inc["started_at"])
+                course = "recovered %s, lasted %s" % (
+                    _fmt_time(inc["ended_at"]),
+                    _fmt_duration(inc["ended_at"] - inc["started_at"]),
+                )
             items.append(
-                "<li><b>%s</b> %s - %s, %s <span class=\"muted\">(%s)</span></li>"
+                "<li><b>%s</b> %s - %s <span class=\"muted\">(%s)</span></li>"
                 % (
                     html.escape(inc["monitor"]),
                     _fmt_time(inc["started_at"]),
-                    "recovered " + _fmt_time(inc["ended_at"]) if inc["ended_at"] else "ongoing",
-                    length,
+                    course,
                     html.escape(inc["reason"] or "check failed"),
                 )
             )

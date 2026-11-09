@@ -63,6 +63,18 @@ class StatusBuildTests(unittest.TestCase):
         page = render_html(build_status(self.storage))
         self.assertIn("incidents", page)
         self.assertIn("boom", page)
+        self.assertIn("recovered", page)
+        self.assertIn("lasted", page)
+
+    def test_open_incident_reads_once_with_duration(self):
+        monitor = self._add()
+        self.storage.apply_result(monitor, CheckResult(ok=False, error="boom"))
+        self.storage.apply_result(monitor, CheckResult(ok=False, error="boom"))
+        page = render_html(build_status(self.storage))
+        self.assertIn("ongoing for", page)
+        # the old wording printed "ongoing, ongoing (0s)" - must not regress
+        self.assertNotIn("ongoing, ongoing", page)
+        self.assertNotIn("recovered", page)
 
 
 class StatusHttpTests(unittest.TestCase):
